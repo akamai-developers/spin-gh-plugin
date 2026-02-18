@@ -1,7 +1,7 @@
 name = "gh"
 description = "Generates GitHub Actions for Spin Apps"
 homepage = "https://github.com/fermyon/spin-gh-plugin"
-version = "0.0.7"
+version = "0.0.8"
 spin_compatibility = ">=2.0.0"
 license = "Apache-2.0"
 package = "gh"
