@@ -27,7 +27,7 @@ var options CreateActionOptions = CreateActionOptions{
 
 var createActionCmd = &cobra.Command{
 	Use:   "create-action",
-	Short: "Examines your Spin App and creates a working GitHub Action for CI",
+	Short: "Examines your Spin App and creates a GitHub Action workflow file",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		apps := detective.FindAllSpinApps()

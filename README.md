@@ -4,9 +4,9 @@
 
 This is a plugin that generates GitHub Actions for your Spin Apps.
 
-# Installation
+## Installation
 
-## Install the latest version of the plugin
+### Install the latest version of the plugin
 
 The latest stable release of the `gh` plugin can be installed like so:
 
@@ -15,7 +15,7 @@ spin plugins update
 spin plugin install gh
 ```
 
-## Install the canary version of the plugin
+### Install the canary version of the plugin
 
 The `canary` release of the `gh` represents the most recent commits on `main` and may not be stable, with some features still in progress.
 
@@ -23,7 +23,7 @@ The `canary` release of the `gh` represents the most recent commits on `main` an
 spin plugins install --url https://github.com/fermyon/spin-gh-plugin/releases/download/canary/gh.json
 ```
 
-## Install from a local build
+### Install from a local build
 
 Alternatively, use the `spin pluginify` plugin to install from a fresh build. This will use the pluginify manifest (`spin-pluginify.toml`) to package the plugin and proceed to install it:
 
@@ -33,9 +33,9 @@ go build -o gh main.go
 spin pluginify --install
 ```
 
-# Usage
+## Usage
 
-## The `create-action` command
+### The `create-action` command
 
 To create a new GitHub Action for your Spin App(s), execute the following command:
 
@@ -43,46 +43,45 @@ To create a new GitHub Action for your Spin App(s), execute the following comman
 spin gh create-action
 ```
 
-### Arguments & Flags
+#### Arguments & Flags
 
 The `create-action` command accepts a bunch of commands that you can use to customize its behavior:
 
-#### GitHub Action Triggers
+##### GitHub Action Triggers
 
 | Argument | Alias | Description | Default |
-|----------|-------|-------------|---------|
+| -------- | ----- | ----------- | ------- |
 | `ci` | | Run GitHub Action for every push on the specified branch (CI) | `main` |
 | `cron` | | Run GitHub Action on a Cron Schedule | |
 | `pr` | | Run GitHub Action for every PR targeting the specified branch | |
 | `manual` | | Run GitHub Action on manual dispatch | `false` |
 
-
-#### Tool Versions
+##### Tool Versions
 
 You can use the following arguments to customize versions installed as part of the GitHub Action
 
 | Argument | Alias | Description | Default |
-|----------|-------|-------------|---------|
+| -------- | ----- | ----------- | ------- |
 | `spin-version` | | Pin the Spin Version | latest stable release |
-| `rust-version` | | Pin the Rust Version | `1.80.1` |
-| `go-version` | | Pin the Go Version | `1.23.2` |
-| `tinygo-version` | | Pin the TinyGo Version | `0.33.0` |
-| `node-version` | | Pin the Node.js Version | `22` |
+| `rust-version` | | Pin the Rust Version | `1.92.0` |
+| `go-version` | | Pin the Go Version | `1.25.7` |
+| `tinygo-version` | | Pin the TinyGo Version | `0.39.0` |
+| `node-version` | | Pin the Node.js Version | `24` |
 | `python-version` | | Pin the Python Version | `3.13.0` |
 
-#### General GitHub Action customization
+##### General GitHub Action customization
 
 | Argument | Alias | Description | Default |
-|----------|-------|-------------|---------|
+| -------- | ----- | ----------- | ------- |
 | `env` | | Specify Environment Variables (format key=value) | |
 | `name` | `n` | Specify the name of the GitHub Action | `CI` |
 | `plugin` | `p` | Specify Spin Plugins that should be installed | |
 | `os` | | Specify the operating system | `ubuntu-latest` |
 
-### Render Options
+#### Render Options
 
 | Argument | Alias | Description | Default |
-|----------|-------|-------------|---------|
+| -------- | ----- | ----------- | ------- |
 | `output` | `o` | Output path | `./github/workflows/ci.yaml` |
 | `dry-run` | | Print GitHub Action yaml to `stdout` | `false` |
 | `overwrite` | | Overwrite the output if it exists | `false` |
@@ -106,9 +105,8 @@ spin gh eject -o ci.yaml --overwrite
 
 The following table lists the data passed to the template as part of the `create-action` command:
 
-
 | Field | DataType | Description | Sample Value |
-|-------|----------|-------------|--------------|
+| ----- | -------- | ----------- | ------------ |
 | `ActionName` | `string` | Name of the workflow | `CI` |
 | `OperatingSystem` | `string` | Desired Operating System | `ubuntu-latest` |
 | `ActionTriggers` | `ActionTriggers` | Desired triggers | See ActionTriggers section below |
@@ -124,7 +122,7 @@ The following table lists the data passed to the template as part of the `create
 ### ActionTriggers
 
 | Field | DataType | Description | Sample Value |
-|-------|----------|-------------|--------------|
+| ----- | -------- | ----------- | ------------ |
 | `ManualDispatch` | `bool` | Is `workflow_dispatch` enabled | `true` |
 | `Cron` | `string` | trigger cron expression | `0 2 * * *` |
 | `PullRequest` | `string` | trigger for PRs targeting the specified branch | `main` |
@@ -133,25 +131,25 @@ The following table lists the data passed to the template as part of the `create
 ### EnvVar
 
 | Field | DataType | Description | Sample Value |
-|-------|----------|-------------|--------------|
+| ----- | -------- | ----------- | ------------ |
 | `Key` | `string` | Name of the environment variable | `FOO` |
 | `Value` | `string` | Name of the environment variable | `bar` |
 
 ### Tools
 
 | Field | DataType | Description | Sample Value |
-|-------|----------|-------------|--------------|
-| `Rust` | `string` | Desired Rust Version | `1.80.1` |
-| `Go` | `string` | Desired Rust Version | `1.23.2` |
-| `TinyGo` | `string` | Desired Rust Version | `0.33.0` |
+| ----- | -------- | ----------- | ------------ |
+| `Rust` | `string` | Desired Rust Version | `1.92.0` |
+| `Go` | `string` | Desired Rust Version | `1.25.7` |
+| `TinyGo` | `string` | Desired Rust Version | `0.39.0` |
 | `Python` | `string` | Desired Rust Version | `3.13.0` |
-| `Node` | `string` | Desired Rust Version | `22` |
-| `Spin` | `string` | Desired Rust Version | `2.7.0` |
+| `Node` | `string` | Desired Rust Version | `24` |
+| `Spin` | `string` | Desired Rust Version | `3.6.0` |
 
 ### SpinAppTemplateData
 
 | Field | DataType | Description | Sample Value |
-|-------|----------|-------------|--------------|
+| ----- | -------- | ----------- | ------------ |
 | `Name` | `string` | Name of the Spin App | `spin-app-1` |
 | `Path` | `string` | Name of the Spin App | `./src/app1` |
 | `Setup` | `string` | Per Spin App setup scripts | `python3 -m venv venv && source venv/bin/activate` |
@@ -161,7 +159,7 @@ The following table lists the data passed to the template as part of the `create
 ### ComponentTemplateData
 
 | Field | DataType | Description | Sample Value |
-|-------|----------|-------------|--------------|
+| ----- | -------- | ----------- | ------------ |
 | `Language` | `string` | Name of the Language used for this component (Rust, Go, JavaScript, Python) App | `Rust` |
 | `Path` | `string` | Path of the component | `./src/app1/api` |
-| `InstallDependenciesCommand` | `string` | Command used to install component dependencies | `npm install` |
+| `InstallDependenciesCommand` | `string` | Command used to install component dependencies | `foo` |
