@@ -28,26 +28,28 @@ func getTemplateContents(customTemplateFilePath string) (string, error) {
 }
 
 type templateData struct {
-	ActionName           string
-	EnvironmentVariables []*EnvVar
-	Go                   bool
-	JavaScript           bool
-	OperatingSystem      string
-	Python               bool
-	Rust                 bool
-	SpinApps             []spinAppTemplateData
-	SpinPlugins          string
-	TargetBranch         string
+	ActionName              string
+	DeployToAkamaiFunctions bool
+	EnvironmentVariables    []*EnvVar
+	Go                      bool
+	JavaScript              bool
+	OperatingSystem         string
+	Python                  bool
+	Rust                    bool
+	SpinApps                []spinAppTemplateData
+	SpinPlugins             string
+	TargetBranch            string
 	Tools
 	ActionTriggers
 }
 
 type spinAppTemplateData struct {
-	Components []componentTemplateData
-	Name       string
-	Path       string
-	Setup      string
-	Teardown   string
+	Components     []componentTemplateData
+	Name           string
+	DeploymentName string
+	Path           string
+	Setup          string
+	Teardown       string
 }
 
 type componentTemplateData struct {
@@ -70,11 +72,12 @@ func newSpinAppMetadata(apps []*spinapp.App, setupCmds []string, teardownCmds []
 	res := make([]spinAppTemplateData, len(apps))
 	for idx, app := range apps {
 		am := spinAppTemplateData{
-			Name:       app.GetName(),
-			Path:       app.GetLocation(),
-			Components: []componentTemplateData{},
-			Setup:      strings.Join(setupCmds, " && "),
-			Teardown:   strings.Join(teardownCmds, " && "),
+			Name:           app.GetName(),
+			DeploymentName: app.GetDeploymentName(),
+			Path:           app.GetLocation(),
+			Components:     []componentTemplateData{},
+			Setup:          strings.Join(setupCmds, " && "),
+			Teardown:       strings.Join(teardownCmds, " && "),
 		}
 		for _, comp := range app.GetComponents() {
 			cm := newComponentMetadata(comp.Language, comp.Location)
@@ -122,17 +125,18 @@ func buildTemplateData(options RenderActionOptions) templateData {
 	appTeardown = distinct(appTeardown)
 
 	return templateData{
-		ActionName:           options.Name,
-		Go:                   golang,
-		JavaScript:           js,
-		OperatingSystem:      options.OperatingSystem,
-		Python:               py,
-		Rust:                 rust,
-		SpinApps:             newSpinAppMetadata(options.SpinApps, appSetup, appTeardown),
-		SpinPlugins:          strings.Join(allPlugins, ","),
-		ActionTriggers:       options.ActionTriggers,
-		Tools:                options.Tools,
-		EnvironmentVariables: options.EnvironmentVariables,
+		ActionName:              options.Name,
+		Go:                      golang,
+		JavaScript:              js,
+		OperatingSystem:         options.OperatingSystem,
+		Python:                  py,
+		Rust:                    rust,
+		SpinApps:                newSpinAppMetadata(options.SpinApps, appSetup, appTeardown),
+		SpinPlugins:             strings.Join(allPlugins, ","),
+		ActionTriggers:          options.ActionTriggers,
+		Tools:                   options.Tools,
+		EnvironmentVariables:    options.EnvironmentVariables,
+		DeployToAkamaiFunctions: options.DeployToAkamaiFunctions,
 	}
 }
 

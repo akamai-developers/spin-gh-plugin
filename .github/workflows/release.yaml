@@ -9,7 +9,7 @@ on:
 
 env:
   PROGRAM_NAME: gh
-  SPIN_VERSION: v2.7.0
+  SPIN_VERSION: v3.6.0
 jobs:
   build:
     name: Build plugin binaries
@@ -66,7 +66,7 @@ jobs:
         run: spin plugins install --url https://github.com/itowlson/spin-pluginify/releases/download/canary/pluginify.json --yes
 
       - name: Build Plugin Binary
-        run: GOOS=${{ matrix.config.goOs }} GOARCH=${{ matrix.config.goArch }} go build -o ${{ env.PROGRAM_NAME }} main.go
+        run: GOOS=${{ matrix.config.goOs }} GOARCH=${{ matrix.config.goArch }} go build -o ${{ env.PROGRAM_NAME }} -ldflags="-X 'github.com/fermyon/spin-gh-plugin/cmd/gh.Version=${{ env.RELEASE_VERSION }}'" main.go
 
       - name: Create Arch-Specific Plugin Manifest
         run: spin pluginify --arch ${{ matrix.config.pluginifyArch }} --os ${{ matrix.config.pluginifyOs }}
