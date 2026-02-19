@@ -5,10 +5,11 @@ import (
 )
 
 type App struct {
-	location   string
-	languages  []Language
-	name       string
-	components []Component
+	location       string
+	languages      []Language
+	name           string
+	deploymentName string
+	components     []Component
 }
 
 type Component struct {
@@ -22,8 +23,9 @@ func NewApp(location string) (*App, error) {
 		return nil, err
 	}
 	return &App{
-		name:     appName,
-		location: location,
+		name:           appName,
+		deploymentName: appName,
+		location:       location,
 	}, nil
 }
 
@@ -36,6 +38,14 @@ func (app *App) GetComponents() []Component {
 }
 func (app *App) GetName() string {
 	return app.name
+}
+
+func (app *App) GetDeploymentName() string {
+	return app.deploymentName
+}
+
+func (app *App) SetDeploymentName(d string) {
+	app.deploymentName = d
 }
 
 func (app *App) GetLanguages() []Language {

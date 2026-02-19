@@ -99,3 +99,30 @@ jobs:
         working-directory: {{ .Path }}
   {{- end }}
 {{- end}}
+{{- if .DeployToAkamaiFunctions }}
+      - name: Install the aka Plugin for Spin
+        run: spin plugins update && spin plugins install aka --yes
+      - name: Login to Akamai Functions
+        run: spin aka login --token {{ `${{ secrets.AKAMAI_FUNCTIONS_TOKEN }}` }}
+    {{- range .SpinApps }}
+      - name: Check if recurring App Deployment ({{ .DeploymentName }})
+        id: check-for-existing-app-{{ .DeploymentName }}
+        run: |
+          if spin aka apps list | grep -xF "{{ .DeploymentName }}" > /dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "App {{ .DeploymentName }} found."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "App {{ .DeploymentName }} not found."
+          fi
+      - name: Link to existing ({{ .DeploymentName }}) App Deployment
+        if: steps.check-for-existing-app-{{ .DeploymentName }}.outputs.exists == 'true'
+        run: spin aka app link --app-name {{ .DeploymentName }} --account-id {{ `${{ secrets.AKAMAI_FUNCTIONS_ACCOUNT_ID }}` }}
+      - name: Deploying {{ .DeploymentName }} to Akamai Functions
+        if: steps.check-for-existing-app-{{ .DeploymentName }}.outputs.exists == 'false'
+        run: spin aka deploy --account-id {{ `${{ secrets.AKAMAI_FUNCTIONS_ACCOUNT_ID }}` }} --create-name {{ .DeploymentName }} --no-confirm --skip-readiness-check
+      - name: ReDeploying {{ .DeploymentName }} to Akamai Functions
+        if: steps.check-for-existing-app-{{ .DeploymentName }}.outputs.exists == 'true'
+        run: spin aka deploy --account-id {{ `${{ secrets.AKAMAI_FUNCTIONS_ACCOUNT_ID }}` }} --no-confirm --skip-readiness-check
+    {{- end }}
+{{- end}}

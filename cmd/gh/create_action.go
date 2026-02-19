@@ -1,38 +1,85 @@
 package gh
 
 import (
+	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/fermyon/spin-gh-plugin/internal/detective"
 	gh "github.com/fermyon/spin-gh-plugin/internal/github"
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
 type CreateActionOptions struct {
 	DryRun bool
 	gh.ActionTriggers
-	Name                 string
-	OperatingSystem      string
-	Output               string
-	Overwrite            bool
-	Plugins              []string
-	EnvironmentVariables []string
-	TemplatePath         string
-	Tools                gh.Tools
+	DeployToAkamaiFunctions bool
+	Name                    string
+	OperatingSystem         string
+	Output                  string
+	Overwrite               bool
+	Plugins                 []string
+	EnvironmentVariables    []string
+	TemplatePath            string
+	Tools                   gh.Tools
 }
 
 var options CreateActionOptions = CreateActionOptions{
 	Tools: gh.DefaultTools(),
 }
 
+var (
+	deploymentNameRegex     = regexp.MustCompile(`^[a-z0-9]+([._-][a-z0-9]+)*$`)
+	deploymentNameMaxLength = 128
+	deploymentNameTemplates = &promptui.PromptTemplates{
+		Prompt:  "{{ . }} ",
+		Valid:   "{{ . | green }} ",
+		Invalid: "{{ . | red }} ",
+		Success: "{{ . | bold }} ",
+	}
+)
+
+func validateDeploymentName(name string) error {
+	// 1. Check length
+	if len(name) > deploymentNameMaxLength {
+		return fmt.Errorf("Deployment name exceeds maximum length of %d", deploymentNameMaxLength)
+	}
+
+	// 2. Check pattern
+	if !deploymentNameRegex.MatchString(name) {
+		return fmt.Errorf("Deployment name contains invalid characters or format")
+	}
+
+	return nil
+}
+
 var createActionCmd = &cobra.Command{
-	Use:   "create-action",
-	Short: "Examines your Spin App and creates a GitHub Action workflow file",
+	Use:     "create-action",
+	Aliases: []string{"create", "generate"},
+	Short:   "Examines your Spin App and creates a GitHub Action workflow file",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		apps := detective.FindAllSpinApps()
 		if len(apps) == 0 {
 			log.Fatal("Could not find Spin App(s) under the current directory")
+		}
+
+		if options.DeployToAkamaiFunctions {
+
+			for _, app := range apps {
+				prompt := promptui.Prompt{
+					Label:     fmt.Sprintf("Deployment Name for %s on Akamai Functions:", app.GetName()),
+					Templates: deploymentNameTemplates,
+					Default:   app.GetName(),
+					Validate:  validateDeploymentName,
+				}
+				result, err := prompt.Run()
+				if err != nil {
+					log.Fatalf("Error while reading deployment name for app %s", app.GetName())
+				}
+				app.SetDeploymentName(result)
+			}
 		}
 
 		envVars, err := gh.ParseEnvVars(options.EnvironmentVariables)
@@ -41,17 +88,18 @@ var createActionCmd = &cobra.Command{
 		}
 
 		renderOptions := gh.RenderActionOptions{
-			CustomTemplatePath:   options.TemplatePath,
-			DryRun:               options.DryRun,
-			Name:                 options.Name,
-			OperatingSystem:      options.OperatingSystem,
-			Output:               options.Output,
-			Overwrite:            options.Overwrite,
-			Plugins:              options.Plugins,
-			SpinApps:             apps,
-			ActionTriggers:       options.ActionTriggers,
-			Tools:                options.Tools,
-			EnvironmentVariables: envVars,
+			DeployToAkamaiFunctions: options.DeployToAkamaiFunctions,
+			CustomTemplatePath:      options.TemplatePath,
+			DryRun:                  options.DryRun,
+			Name:                    options.Name,
+			OperatingSystem:         options.OperatingSystem,
+			Output:                  options.Output,
+			Overwrite:               options.Overwrite,
+			Plugins:                 options.Plugins,
+			SpinApps:                apps,
+			ActionTriggers:          options.ActionTriggers,
+			Tools:                   options.Tools,
+			EnvironmentVariables:    envVars,
 		}
 		err = gh.RenderAction(renderOptions)
 		if err != nil {
@@ -85,5 +133,6 @@ func init() {
 	createActionCmd.Flags().StringVarP(&options.OperatingSystem, "os", "", "ubuntu-latest", "Specify the desired operating system for the GitHub Action")
 	createActionCmd.Flags().BoolVarP(&options.DryRun, "dry-run", "", false, "Print GitHub Action to stdout instead of writing to a file")
 
+	createActionCmd.Flags().BoolVarP(&options.DeployToAkamaiFunctions, "deploy-to-akamai-functions", "", false, "Add steps for deploying your Spin App(s) to Akamai Functions")
 	rootCmd.AddCommand(createActionCmd)
 }

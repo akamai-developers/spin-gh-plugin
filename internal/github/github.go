@@ -11,16 +11,17 @@ import (
 )
 
 type RenderActionOptions struct {
-	CustomTemplatePath   string
-	DryRun               bool
-	Name                 string
-	OperatingSystem      string
-	Output               string
-	Overwrite            bool
-	Plugins              []string
-	EnvironmentVariables []*EnvVar
-	SpinApps             []*spinapp.App
-	SpinVersion          string
+	CustomTemplatePath      string
+	DeployToAkamaiFunctions bool
+	DryRun                  bool
+	Name                    string
+	OperatingSystem         string
+	Output                  string
+	Overwrite               bool
+	Plugins                 []string
+	EnvironmentVariables    []*EnvVar
+	SpinApps                []*spinapp.App
+	SpinVersion             string
 	Tools
 	ActionTriggers
 }
