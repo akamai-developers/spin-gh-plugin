@@ -108,7 +108,7 @@ jobs:
       - name: Check if recurring App Deployment ({{ .DeploymentName }})
         id: check-for-existing-app-{{ .DeploymentName }}
         run: |
-          if spin aka apps list | grep -xF "{{ .DeploymentName }}" > /dev/null; then
+          if spin aka apps list --account-id {{ `${{ secrets.AKAMAI_FUNCTIONS_ACCOUNT_ID }}` }} | grep -xF "{{ .DeploymentName }}" > /dev/null; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "App {{ .DeploymentName }} found."
           else
