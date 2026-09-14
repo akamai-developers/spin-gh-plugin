@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	gh "github.com/fermyon/spin-gh-plugin/internal/github"
+	gh "github.com/akamai-developers/spin-gh-plugin/internal/github"
 	"github.com/spf13/cobra"
 )
 

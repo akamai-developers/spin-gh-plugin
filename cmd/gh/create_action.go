@@ -3,9 +3,9 @@ package gh
 import (
 	"log"
 
-	"github.com/fermyon/spin-gh-plugin/cmd/gh/prompter"
-	"github.com/fermyon/spin-gh-plugin/internal/detective"
-	gh "github.com/fermyon/spin-gh-plugin/internal/github"
+	"github.com/akamai-developers/spin-gh-plugin/cmd/gh/prompter"
+	"github.com/akamai-developers/spin-gh-plugin/internal/detective"
+	gh "github.com/akamai-developers/spin-gh-plugin/internal/github"
 	"github.com/spf13/cobra"
 )
 

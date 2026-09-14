@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/fermyon/spin-gh-plugin/internal/spinapp"
+	"github.com/akamai-developers/spin-gh-plugin/internal/spinapp"
 )
 
 var ignoreFolders = []string{"node_modules", "target"}

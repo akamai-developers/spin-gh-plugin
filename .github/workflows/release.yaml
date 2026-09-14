@@ -11,9 +11,28 @@ env:
   PROGRAM_NAME: gh
   SPIN_VERSION: v4.1.0
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race ./...
+
   build:
     name: Build plugin binaries
     runs-on: ubuntu-latest
+    needs: test
     strategy:
       matrix:
         config:
@@ -66,7 +85,7 @@ jobs:
         run: spin plugins install --url https://github.com/itowlson/spin-pluginify/releases/download/canary/pluginify.json --yes
 
       - name: Build Plugin Binary
-        run: GOOS=${{ matrix.config.goOs }} GOARCH=${{ matrix.config.goArch }} go build -o ${{ env.PROGRAM_NAME }} -ldflags="-X 'github.com/fermyon/spin-gh-plugin/cmd/gh.Version=${{ env.RELEASE_VERSION }}'" main.go
+        run: GOOS=${{ matrix.config.goOs }} GOARCH=${{ matrix.config.goArch }} go build -o ${{ env.PROGRAM_NAME }} -ldflags="-X 'github.com/akamai-developers/spin-gh-plugin/cmd/gh.Version=${{ env.RELEASE_VERSION }}'" main.go
 
       - name: Create Arch-Specific Plugin Manifest
         run: spin pluginify --arch ${{ matrix.config.pluginifyArch }} --os ${{ matrix.config.pluginifyOs }}
@@ -107,7 +126,7 @@ jobs:
         run: ls -R
       - name: pluginify it
         run: |
-          spin pluginify --merge --release-url-base https://github.com/fermyon/spin-gh-plugin/releases/download/${{ env.RELEASE_VERSION }}/ >${{ env.PROGRAM_NAME }}.json
+          spin pluginify --merge --release-url-base https://github.com/akamai-developers/spin-gh-plugin/releases/download/${{ env.RELEASE_VERSION }}/ >${{ env.PROGRAM_NAME }}.json
       - name: Display merged manifest
         run: cat ${{ env.PROGRAM_NAME }}.json
       - name: Archive Combined Manifest

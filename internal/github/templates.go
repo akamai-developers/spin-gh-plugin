@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fermyon/spin-gh-plugin/internal/spinapp"
+	"github.com/akamai-developers/spin-gh-plugin/internal/spinapp"
 )
 
 //go:embed default_workflow.yaml.tmpl
