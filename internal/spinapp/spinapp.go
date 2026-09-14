@@ -2,14 +2,20 @@ package spinapp
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 )
 
 type App struct {
-	location       string
-	languages      []Language
-	name           string
-	deploymentName string
-	components     []Component
+	location          string
+	languages         []Language
+	name              string
+	DeploymentName    string
+	OciReferences     []string
+	OciUser           string
+	OciLoginServer    string
+	OciUseGitHubToken bool
+	components        []Component
 }
 
 type Component struct {
@@ -24,7 +30,7 @@ func NewApp(location string) (*App, error) {
 	}
 	return &App{
 		name:           appName,
-		deploymentName: appName,
+		DeploymentName: appName,
 		location:       location,
 	}, nil
 }
@@ -40,12 +46,22 @@ func (app *App) GetName() string {
 	return app.name
 }
 
-func (app *App) GetDeploymentName() string {
-	return app.deploymentName
-}
+func (app *App) GetVarSafeAppName() string {
+	var (
+		invalidCharRegex  = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
+		leadingDigitRegex = regexp.MustCompile(`^[0-9]`)
+	)
 
-func (app *App) SetDeploymentName(d string) {
-	app.deploymentName = d
+	if strings.TrimSpace(app.name) == "" {
+		return ""
+	}
+	varSafeAppName := strings.ToUpper(app.name)
+	varSafeAppName = invalidCharRegex.ReplaceAllString(varSafeAppName, "_")
+	varSafeAppName = strings.Trim(varSafeAppName, "_")
+	if leadingDigitRegex.MatchString(varSafeAppName) {
+		varSafeAppName = "_" + varSafeAppName
+	}
+	return varSafeAppName
 }
 
 func (app *App) GetLanguages() []Language {

@@ -15,7 +15,7 @@ var JavaScript = Language{
 	Name:                       "JavaScript",
 	Hint:                       "package.json",
 	Plugin:                     "",
-	InstallDependenciesCommand: "",
+	InstallDependenciesCommand: "npm ci",
 }
 var Python = Language{
 	Name:                       "Python",

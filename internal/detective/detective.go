@@ -29,7 +29,7 @@ func FindAllSpinApps() []*spinapp.App {
 			}
 			app, err := spinapp.NewApp(relativePath)
 			if err != nil {
-				fmt.Printf("%v", err)
+				log.Printf("%v", err)
 				return err
 			}
 			log.Printf("Discovered Spin App: %s\n", app.ToString())

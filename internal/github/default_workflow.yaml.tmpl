@@ -21,9 +21,11 @@ env:
 {{- if .Rust }}
   RUST_VERSION: "{{ .Tools.Rust }}"
 {{- end }}
+{{- if .RustTarget }}
+  RUST_TARGET: "{{ .Tools.RustTarget }}"
+{{- end }}
 {{- if .Go }}
   GO_VERSION: "{{ .Tools.Go}}"
-  TINYGO_VERSION: "{{ .Tools.TinyGo }}"
 {{- end }}
 {{- if .JavaScript }}
   NODE_VERSION: "{{ .Tools.Node }}"
@@ -31,7 +33,9 @@ env:
 {{- if .Python }}
   PYTHON_VERSION: "{{ .Tools.Python}}"
 {{- end }}
+{{- if ne .Tools.Spin "" }}
   SPIN_VERSION: "{{ .Tools.Spin }}"
+{{- end }}
   {{- range .EnvironmentVariables }}
   {{ .Key }}: "{{ .Value }}"
   {{- end }}
@@ -39,6 +43,11 @@ jobs:
   spin:
     runs-on: "{{ .OperatingSystem }}"
     name: Build Spin App
+    permissions:
+      contents: read
+{{- if .PushOciArtifacts }}
+      packages: write
+{{- end }}
     steps:
       - uses: actions/checkout@v4
 {{- if .Go }}
@@ -46,17 +55,13 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "{{ `${{ env.GO_VERSION }}` }}"
-      - name: Install TinyGo
-        uses: rajatjindal/setup-actions/tinygo@v0.0.1
-        with:
-          version: "{{ `${{ env.TINYGO_VERSION }}` }}"
 {{- end }}
 {{- if .Rust }}
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: "{{ `${{ env.RUST_VERSION }}` }}"
-          targets: wasm32-wasip1
+          targets: "{{ `${{ env.RUST_TARGET }}` }}"
 {{- end }}
 {{- if .JavaScript }}
       - name: Install Node.js
@@ -73,10 +78,13 @@ jobs:
       - name: Install Spin
         uses: fermyon/actions/spin/setup@v1
         with:
+          github_token: {{ `${{ secrets.GITHUB_TOKEN }}` }}
 {{- if ne .Tools.Spin "" }}
           version: "{{ `${{ env.SPIN_VERSION }}` }}"
 {{- end }}
+{{- if ne .SpinPlugins "" }}
           plugins: {{ .SpinPlugins }}
+{{- end }}
 {{- range .SpinApps }}
   {{- if ne .Setup "" }}
       - name: Executing Setup Commands for {{ .Name }}
@@ -99,6 +107,25 @@ jobs:
         working-directory: {{ .Path }}
   {{- end }}
 {{- end}}
+{{- if .PushOciArtifacts }}
+    {{- range .SpinApps }}
+    {{- if ne .OciLoginServer "" }}
+      - name: Authenticate against OCI registry for {{ .Name }}
+      {{- if .OciUseGitHubToken }}
+        run: spin registry login -u {{ `${{ github.actor }}` }} -p {{ `${{ secrets.GITHUB_TOKEN }}` }} {{ .OciLoginServer }}
+      {{- else }}
+        {{- $oci_login_password_secret_name := print "OCI_REGISTRY_PASSWORD_" .VarSafeAppName }}
+        run: spin registry login -u {{ .OciUser }} -p {{ print `${{ secrets.` $oci_login_password_secret_name ` }}` }} {{ .OciLoginServer }}
+      {{- end }}
+    {{- end }}
+      - name: Push OCI Artifact for {{ .Name }}
+        working-directory: {{ .Path }}
+        run: |
+        {{- range .OciReferences }}
+          spin registry push {{ . }}
+        {{- end }}
+    {{- end }}
+{{- end}}
 {{- if .DeployToAkamaiFunctions }}
       - name: Install the aka Plugin for Spin
         run: spin plugins update && spin plugins install aka --yes
@@ -106,7 +133,7 @@ jobs:
         run: spin aka login --token {{ `${{ secrets.AKAMAI_FUNCTIONS_TOKEN }}` }}
     {{- range .SpinApps }}
       - name: Check if recurring App Deployment ({{ .DeploymentName }})
-        id: check-for-existing-app-{{ .DeploymentName }}
+        id: check-for-existing-app-{{ .VarSafeAppName }}
         run: |
           if spin aka apps list --account-id {{ `${{ secrets.AKAMAI_FUNCTIONS_ACCOUNT_ID }}` }} | grep -xF "{{ .DeploymentName }}" > /dev/null; then
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -116,13 +143,16 @@ jobs:
             echo "App {{ .DeploymentName }} not found."
           fi
       - name: Link to existing ({{ .DeploymentName }}) App Deployment
-        if: steps.check-for-existing-app-{{ .DeploymentName }}.outputs.exists == 'true'
+        if: steps.check-for-existing-app-{{ .VarSafeAppName }}.outputs.exists == 'true'
+        working-directory: {{ .Path }}
         run: spin aka app link --app-name {{ .DeploymentName }} --account-id {{ `${{ secrets.AKAMAI_FUNCTIONS_ACCOUNT_ID }}` }}
       - name: Deploying {{ .DeploymentName }} to Akamai Functions
-        if: steps.check-for-existing-app-{{ .DeploymentName }}.outputs.exists == 'false'
+        if: steps.check-for-existing-app-{{ .VarSafeAppName }}.outputs.exists == 'false'
+        working-directory: {{ .Path }}
         run: spin aka deploy --account-id {{ `${{ secrets.AKAMAI_FUNCTIONS_ACCOUNT_ID }}` }} --create-name {{ .DeploymentName }} --no-confirm --skip-readiness-check
       - name: ReDeploying {{ .DeploymentName }} to Akamai Functions
-        if: steps.check-for-existing-app-{{ .DeploymentName }}.outputs.exists == 'true'
+        if: steps.check-for-existing-app-{{ .VarSafeAppName }}.outputs.exists == 'true'
+        working-directory: {{ .Path }}
         run: spin aka deploy --account-id {{ `${{ secrets.AKAMAI_FUNCTIONS_ACCOUNT_ID }}` }} --no-confirm --skip-readiness-check
     {{- end }}
 {{- end}}
