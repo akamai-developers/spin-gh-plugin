@@ -158,9 +158,15 @@ The following table lists the data passed to the template as part of the `create
 | Field | DataType | Description | Sample Value |
 | ----- | -------- | ----------- | ------------ |
 | `Name` | `string` | Name of the Spin App | `spin-app-1` |
-| `Path` | `string` | Name of the Spin App | `./src/app1` |
+| `VarSafeAppName` | `string` | Uppercased, `_`-sluggified name used in secret/variable names | `SPIN_APP_1` |
+| `DeploymentName` | `string` | Name used when deploying the app | `spin-app-1` |
+| `Path` | `string` | Path to the Spin App | `./src/app1` |
 | `Setup` | `string` | Per Spin App setup scripts | `python3 -m venv venv && source venv/bin/activate` |
-| `Teardown` | `string` | Name of the Spin App | `deactivate` |
+| `Teardown` | `string` | Per Spin App teardown scripts | `deactivate` |
+| `OciLoginServer` | `string` | OCI registry to authenticate against | `ghcr.io` |
+| `OciUser` | `string` | Username used to authenticate against the OCI registry | `alice` |
+| `OciUseGitHubToken` | `bool` | Authenticate with the built-in `GITHUB_TOKEN` instead of a password secret | `true` |
+| `OciReferences` | `[]string` | Fully qualified OCI references (including tags) to publish | `ghcr.io/my-org/spin-app-1:latest` |
 | `Components` | `[]componentTemplateData` | Information for every Component of the App | See ComponentTemplateData section below |
 
 ### ComponentTemplateData
