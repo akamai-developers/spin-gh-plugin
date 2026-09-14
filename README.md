@@ -63,10 +63,10 @@ You can use the following arguments to customize versions installed as part of t
 | Argument | Alias | Description | Default |
 | -------- | ----- | ----------- | ------- |
 | `spin-version` | | Pin the Spin Version | latest stable release |
-| `rust-version` | | Pin the Rust Version | `1.92.0` |
-| `go-version` | | Pin the Go Version | `1.25.7` |
-| `tinygo-version` | | Pin the TinyGo Version | `0.39.0` |
-| `node-version` | | Pin the Node.js Version | `24` |
+| `rust-version` | | Pin the Rust Version | `1.98.1` |
+| `rust-target` | | Set the desired Rust compilation target | `wasm32-wasip2` |
+| `go-version` | | Pin the Go Version | `1.26.6` |
+| `node-version` | | Pin the Node.js Version | `26` |
 | `python-version` | | Pin the Python Version | `3.13.0` |
 
 ##### General GitHub Action customization
@@ -75,8 +75,15 @@ You can use the following arguments to customize versions installed as part of t
 | -------- | ----- | ----------- | ------- |
 | `env` | | Specify Environment Variables (format key=value) | |
 | `name` | `n` | Specify the name of the GitHub Action | `CI` |
-| `plugin` | `p` | Specify Spin Plugins that should be installed | |
+| `spin-plugins` | `p` | Specify Spin Plugins that should be installed | |
 | `os` | | Specify the operating system | `ubuntu-latest` |
+
+##### Publishing & Deployment
+
+| Argument | Alias | Description | Default |
+| -------- | ----- | ----------- | ------- |
+| `push-oci-artifacts` | | Add steps to publish your Spin App(s) to an OCI registry | `false` |
+| `deploy-to-akamai-functions` | | Add steps for deploying your Spin App(s) to Akamai Functions | `false` |
 
 #### Render Options
 
@@ -139,12 +146,12 @@ The following table lists the data passed to the template as part of the `create
 
 | Field | DataType | Description | Sample Value |
 | ----- | -------- | ----------- | ------------ |
-| `Rust` | `string` | Desired Rust Version | `1.92.0` |
-| `Go` | `string` | Desired Rust Version | `1.25.7` |
-| `TinyGo` | `string` | Desired Rust Version | `0.39.0` |
-| `Python` | `string` | Desired Rust Version | `3.13.0` |
-| `Node` | `string` | Desired Rust Version | `24` |
-| `Spin` | `string` | Desired Rust Version | `3.6.0` |
+| `Rust` | `string` | Desired Rust Version | `1.98.1` |
+| `RustTarget` | `string` | Desired Rust compilation target | `wasm32-wasip2` |
+| `Go` | `string` | Desired Go Version | `1.26.6` |
+| `Python` | `string` | Desired Python Version | `3.13.0` |
+| `Node` | `string` | Desired Node.js Version | `26` |
+| `Spin` | `string` | Desired Spin Version | `3.6.0` |
 
 ### SpinAppTemplateData
 
