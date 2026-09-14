@@ -9,7 +9,7 @@ on:
 
 env:
   PROGRAM_NAME: gh
-  SPIN_VERSION: v3.6.0
+  SPIN_VERSION: v4.1.0
 jobs:
   build:
     name: Build plugin binaries

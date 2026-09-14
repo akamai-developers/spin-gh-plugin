@@ -151,7 +151,7 @@ The following table lists the data passed to the template as part of the `create
 | `Go` | `string` | Desired Go Version | `1.26.6` |
 | `Python` | `string` | Desired Python Version | `3.13.0` |
 | `Node` | `string` | Desired Node.js Version | `26` |
-| `Spin` | `string` | Desired Spin Version | `3.6.0` |
+| `Spin` | `string` | Desired Spin Version (empty means latest stable release) | `4.1.0` |
 
 ### SpinAppTemplateData
 
