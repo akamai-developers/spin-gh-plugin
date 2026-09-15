@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/charmbracelet/huh"
 	"github.com/akamai-developers/spin-gh-plugin/internal/spinapp"
+	"github.com/charmbracelet/huh"
 )
 
 var (
@@ -49,7 +49,7 @@ func PromptForAkamaiFunctionDeploymentDetails(apps []*spinapp.App) {
 		app := apps[i]
 		fields = append(fields, huh.NewInput().
 			Title(fmt.Sprintf("Deployment name for %q", app.GetName())).
-			Description(fmt.Sprintf("Name on your Akamai Functions account · source: %s", app.GetLocation())).
+			Description(fmt.Sprintf("How do you want to call '%s' on Akamai Functions?", app.GetName())).
 			Placeholder(app.GetName()).
 			Value(&app.DeploymentName).
 			Validate(validateDeploymentName))
@@ -73,7 +73,8 @@ func akamaiIntro(count int) string {
 	return fmt.Sprintf(
 		"Found %d Spin apps. Choose the name each should use on Akamai\n"+
 			"Functions (defaults match the app name).\n\n%s",
-		count, secrets)
+		count, secrets,
+	)
 }
 
 // PromptForOciDetails walks the user through the OCI publish settings for each
