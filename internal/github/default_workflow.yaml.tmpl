@@ -47,9 +47,14 @@ jobs:
       contents: read
 {{- if .PushOciArtifacts }}
       packages: write
+      id-token: write
 {{- end }}
     steps:
       - uses: actions/checkout@v4
+{{- if .PushOciArtifacts }}
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+{{- end }}
 {{- if .Go }}
       - name: Install Go
         uses: actions/setup-go@v5
@@ -112,10 +117,14 @@ jobs:
     {{- if ne .OciLoginServer "" }}
       - name: Authenticate against OCI registry for {{ .Name }}
       {{- if .OciUseGitHubToken }}
-        run: spin registry login -u {{ `${{ github.actor }}` }} -p {{ `${{ secrets.GITHUB_TOKEN }}` }} {{ .OciLoginServer }}
+        run: |
+          spin registry login -u {{ `${{ github.actor }}` }} -p {{ `${{ secrets.GITHUB_TOKEN }}` }} {{ .OciLoginServer }}
+          docker login -u {{ `${{ github.actor }}` }} -p {{ `${{ secrets.GITHUB_TOKEN }}` }} {{ .OciLoginServer }}
       {{- else }}
         {{- $oci_login_password_secret_name := print "OCI_REGISTRY_PASSWORD_" .VarSafeAppName }}
-        run: spin registry login -u {{ .OciUser }} -p {{ print `${{ secrets.` $oci_login_password_secret_name ` }}` }} {{ .OciLoginServer }}
+        run: |
+          spin registry login -u {{ .OciUser }} -p {{ print `${{ secrets.` $oci_login_password_secret_name ` }}` }} {{ .OciLoginServer }}
+          docker login -u {{ .OciUser }} -p {{ print `${{ secrets.` $oci_login_password_secret_name ` }}` }} {{ .OciLoginServer }}
       {{- end }}
     {{- end }}
       - name: Push OCI Artifact for {{ .Name }}
@@ -123,6 +132,11 @@ jobs:
         run: |
         {{- range .OciReferences }}
           spin registry push {{ . }}
+        {{- end }}
+      - name: Sign OCI Artifact for {{ .Name }}
+        run: |
+        {{- range .OciReferences }}
+          cosign sign --yes {{ . }}
         {{- end }}
     {{- end }}
 {{- end}}
