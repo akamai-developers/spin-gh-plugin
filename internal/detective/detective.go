@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/fermyon/spin-gh-plugin/internal/spinapp"
+	"github.com/akamai-developers/spin-gh-plugin/internal/spinapp"
 )
 
 var ignoreFolders = []string{"node_modules", "target"}
@@ -29,7 +29,7 @@ func FindAllSpinApps() []*spinapp.App {
 			}
 			app, err := spinapp.NewApp(relativePath)
 			if err != nil {
-				fmt.Printf("%v", err)
+				log.Printf("%v", err)
 				return err
 			}
 			log.Printf("Discovered Spin App: %s\n", app.ToString())

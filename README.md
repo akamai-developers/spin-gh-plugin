@@ -1,6 +1,6 @@
 # Spin GitHub Plugin
 
-[![Release](https://github.com/fermyon/spin-gh-plugin/actions/workflows/release.yaml/badge.svg)](https://github.com/fermyon/spin-gh-plugin/actions/workflows/release.yaml)
+[![Release](https://github.com/akamai-developers/spin-gh-plugin/actions/workflows/release.yaml/badge.svg)](https://github.com/akamai-developers/spin-gh-plugin/actions/workflows/release.yaml)
 
 This is a plugin that generates GitHub Actions for your Spin Apps.
 
@@ -20,7 +20,7 @@ spin plugin install gh
 The `canary` release of the `gh` represents the most recent commits on `main` and may not be stable, with some features still in progress.
 
 ```sh
-spin plugins install --url https://github.com/fermyon/spin-gh-plugin/releases/download/canary/gh.json
+spin plugins install --url https://github.com/akamai-developers/spin-gh-plugin/releases/download/canary/gh.json
 ```
 
 ### Install from a local build
@@ -63,10 +63,10 @@ You can use the following arguments to customize versions installed as part of t
 | Argument | Alias | Description | Default |
 | -------- | ----- | ----------- | ------- |
 | `spin-version` | | Pin the Spin Version | latest stable release |
-| `rust-version` | | Pin the Rust Version | `1.92.0` |
-| `go-version` | | Pin the Go Version | `1.25.7` |
-| `tinygo-version` | | Pin the TinyGo Version | `0.39.0` |
-| `node-version` | | Pin the Node.js Version | `24` |
+| `rust-version` | | Pin the Rust Version | `1.98.1` |
+| `rust-target` | | Set the desired Rust compilation target | `wasm32-wasip2` |
+| `go-version` | | Pin the Go Version | `1.26.6` |
+| `node-version` | | Pin the Node.js Version | `26` |
 | `python-version` | | Pin the Python Version | `3.13.0` |
 
 ##### General GitHub Action customization
@@ -75,8 +75,15 @@ You can use the following arguments to customize versions installed as part of t
 | -------- | ----- | ----------- | ------- |
 | `env` | | Specify Environment Variables (format key=value) | |
 | `name` | `n` | Specify the name of the GitHub Action | `CI` |
-| `plugin` | `p` | Specify Spin Plugins that should be installed | |
+| `spin-plugins` | `p` | Specify Spin Plugins that should be installed | |
 | `os` | | Specify the operating system | `ubuntu-latest` |
+
+##### Publishing & Deployment
+
+| Argument | Alias | Description | Default |
+| -------- | ----- | ----------- | ------- |
+| `push-oci-artifacts` | | Add steps to publish your Spin App(s) to an OCI registry | `false` |
+| `deploy-to-akamai-functions` | | Add steps for deploying your Spin App(s) to Akamai Functions | `false` |
 
 #### Render Options
 
@@ -139,21 +146,27 @@ The following table lists the data passed to the template as part of the `create
 
 | Field | DataType | Description | Sample Value |
 | ----- | -------- | ----------- | ------------ |
-| `Rust` | `string` | Desired Rust Version | `1.92.0` |
-| `Go` | `string` | Desired Rust Version | `1.25.7` |
-| `TinyGo` | `string` | Desired Rust Version | `0.39.0` |
-| `Python` | `string` | Desired Rust Version | `3.13.0` |
-| `Node` | `string` | Desired Rust Version | `24` |
-| `Spin` | `string` | Desired Rust Version | `3.6.0` |
+| `Rust` | `string` | Desired Rust Version | `1.98.1` |
+| `RustTarget` | `string` | Desired Rust compilation target | `wasm32-wasip2` |
+| `Go` | `string` | Desired Go Version | `1.26.6` |
+| `Python` | `string` | Desired Python Version | `3.13.0` |
+| `Node` | `string` | Desired Node.js Version | `26` |
+| `Spin` | `string` | Desired Spin Version (empty means latest stable release) | `4.1.0` |
 
 ### SpinAppTemplateData
 
 | Field | DataType | Description | Sample Value |
 | ----- | -------- | ----------- | ------------ |
 | `Name` | `string` | Name of the Spin App | `spin-app-1` |
-| `Path` | `string` | Name of the Spin App | `./src/app1` |
+| `VarSafeAppName` | `string` | Uppercased, `_`-sluggified name used in secret/variable names | `SPIN_APP_1` |
+| `DeploymentName` | `string` | Name used when deploying the app | `spin-app-1` |
+| `Path` | `string` | Path to the Spin App | `./src/app1` |
 | `Setup` | `string` | Per Spin App setup scripts | `python3 -m venv venv && source venv/bin/activate` |
-| `Teardown` | `string` | Name of the Spin App | `deactivate` |
+| `Teardown` | `string` | Per Spin App teardown scripts | `deactivate` |
+| `OciLoginServer` | `string` | OCI registry to authenticate against | `ghcr.io` |
+| `OciUser` | `string` | Username used to authenticate against the OCI registry | `alice` |
+| `OciUseGitHubToken` | `bool` | Authenticate with the built-in `GITHUB_TOKEN` instead of a password secret | `true` |
+| `OciReferences` | `[]string` | Fully qualified OCI references (including tags) to publish | `ghcr.io/my-org/spin-app-1:latest` |
 | `Components` | `[]componentTemplateData` | Information for every Component of the App | See ComponentTemplateData section below |
 
 ### ComponentTemplateData

@@ -9,14 +9,16 @@ type Language struct {
 	InstallDependenciesCommand string
 }
 
-var Rust = Language{Name: "Rust", Hint: "cargo.toml"}
-var GoLang = Language{Name: "Go", Hint: "go.mod"}
-var JavaScript = Language{
-	Name:                       "JavaScript",
-	Hint:                       "package.json",
-	Plugin:                     "",
-	InstallDependenciesCommand: "",
-}
+var (
+	Rust       = Language{Name: "Rust", Hint: "cargo.toml"}
+	GoLang     = Language{Name: "Go", Hint: "go.mod"}
+	JavaScript = Language{
+		Name:                       "JavaScript",
+		Hint:                       "package.json",
+		Plugin:                     "",
+		InstallDependenciesCommand: "",
+	}
+)
 var Python = Language{
 	Name:                       "Python",
 	Hint:                       "requirements.txt",

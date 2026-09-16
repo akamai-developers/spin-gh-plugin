@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fermyon/spin-gh-plugin/internal/spinapp"
+	"github.com/akamai-developers/spin-gh-plugin/internal/spinapp"
 )
 
 //go:embed default_workflow.yaml.tmpl
@@ -30,6 +30,7 @@ func getTemplateContents(customTemplateFilePath string) (string, error) {
 type templateData struct {
 	ActionName              string
 	DeployToAkamaiFunctions bool
+	PushOciArtifacts        bool
 	EnvironmentVariables    []*EnvVar
 	Go                      bool
 	JavaScript              bool
@@ -44,9 +45,15 @@ type templateData struct {
 }
 
 type spinAppTemplateData struct {
-	Components     []componentTemplateData
-	Name           string
-	DeploymentName string
+	Components        []componentTemplateData
+	Name              string
+	DeploymentName    string
+	OciLoginServer    string
+	OciUser           string
+	OciUseGitHubToken bool
+	OciReferences     []string
+	/// Name in uppercase and sluggified via _
+	VarSafeAppName string
 	Path           string
 	Setup          string
 	Teardown       string
@@ -72,12 +79,17 @@ func newSpinAppMetadata(apps []*spinapp.App, setupCmds []string, teardownCmds []
 	res := make([]spinAppTemplateData, len(apps))
 	for idx, app := range apps {
 		am := spinAppTemplateData{
-			Name:           app.GetName(),
-			DeploymentName: app.GetDeploymentName(),
-			Path:           app.GetLocation(),
-			Components:     []componentTemplateData{},
-			Setup:          strings.Join(setupCmds, " && "),
-			Teardown:       strings.Join(teardownCmds, " && "),
+			Name:              app.GetName(),
+			VarSafeAppName:    app.GetVarSafeAppName(),
+			DeploymentName:    app.DeploymentName,
+			OciReferences:     app.OciReferences,
+			OciLoginServer:    app.OciLoginServer,
+			OciUser:           app.OciUser,
+			OciUseGitHubToken: app.OciUseGitHubToken,
+			Path:              app.GetLocation(),
+			Components:        []componentTemplateData{},
+			Setup:             strings.Join(setupCmds, " && "),
+			Teardown:          strings.Join(teardownCmds, " && "),
 		}
 		for _, comp := range app.GetComponents() {
 			cm := newComponentMetadata(comp.Language, comp.Location)
@@ -137,6 +149,7 @@ func buildTemplateData(options RenderActionOptions) templateData {
 		Tools:                   options.Tools,
 		EnvironmentVariables:    options.EnvironmentVariables,
 		DeployToAkamaiFunctions: options.DeployToAkamaiFunctions,
+		PushOciArtifacts:        options.PushOciArtifacts,
 	}
 }
 
