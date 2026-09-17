@@ -54,6 +54,10 @@ jobs:
 {{- if .PushOciArtifacts }}
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
+      - name: Install trivy
+        uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
+      - name: Install ORAS
+        uses: oras-project/setup-oras@v1
 {{- end }}
 {{- if .Go }}
       - name: Install Go
@@ -114,6 +118,14 @@ jobs:
 {{- end}}
 {{- if .PushOciArtifacts }}
     {{- range .SpinApps }}
+      - name: Generate SBOM for {{ .Name }}
+        working-directory: {{ .Path }}
+        run: |
+          trivy fs --format spdx-json -o sbom.spdx.json .
+      - name: Scan {{ .Name }} SBOM for Critical Vulnerabilities
+        working-directory: {{ .Path }}
+        run: |
+          trivy sbom --exit-code 1 --severity HIGH,CRITICAL sbom.spdx.json
     {{- if ne .OciLoginServer "" }}
       - name: Authenticate against OCI registry for {{ .Name }}
       {{- if .OciUseGitHubToken }}
@@ -134,9 +146,16 @@ jobs:
           spin registry push {{ . }}
         {{- end }}
       - name: Sign OCI Artifact for {{ .Name }}
+        working-directory: {{ .Path }}
         run: |
         {{- range .OciReferences }}
           cosign sign --yes {{ . }}
+        {{- end }}
+      - name: Attach {{ .Name }} SBOM via ORAS
+        working-directory: {{ .Path }}
+        run: |
+        {{- range .OciReferences }}
+          oras attach --artifact-type application/spdx+json {{ . }} sbom.spdx.json
         {{- end }}
     {{- end }}
 {{- end}}
