@@ -14,6 +14,8 @@ type RenderActionOptions struct {
 	CustomTemplatePath      string
 	DeployToAkamaiFunctions bool
 	PushOciArtifacts        bool
+	GenerateSbom            bool
+	GenerateSignature       bool
 	DryRun                  bool
 	Name                    string
 	OperatingSystem         string
