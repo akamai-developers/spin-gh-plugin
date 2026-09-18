@@ -1,7 +1,7 @@
 name = "gh"
 description = "Generates GitHub Actions for Spin Apps"
 homepage = "https://github.com/akamai-developers/spin-gh-plugin"
-version = "0.2.0"
+version = "0.2.1"
 spin_compatibility = ">=2.0.0"
 license = "Apache-2.0"
 package = "gh"

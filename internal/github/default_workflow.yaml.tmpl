@@ -1,3 +1,6 @@
+{{- $generateSbom := .GenerateSbom }}
+{{- $generateSignature := .GenerateSignature }}
+{{- $generateSbomOrSignature := .GenerateSbomOrSignature }}
 name: "{{ .ActionName }}"
 on:
 {{- if ne .ActionTriggers.Push "" }}
@@ -47,9 +50,24 @@ jobs:
       contents: read
 {{- if .PushOciArtifacts }}
       packages: write
+{{- if $generateSignature }}
+      id-token: write
+{{- end }}
 {{- end }}
     steps:
       - uses: actions/checkout@v4
+{{- if .PushOciArtifacts }}
+{{- if $generateSignature }}
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+{{- end }}
+{{- if $generateSbom }}
+      - name: Install trivy
+        uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
+      - name: Install ORAS
+        uses: oras-project/setup-oras@v1
+{{- end }}
+{{- end }}
 {{- if .Go }}
       - name: Install Go
         uses: actions/setup-go@v5
@@ -106,16 +124,34 @@ jobs:
         run: {{ .Teardown }}
         working-directory: {{ .Path }}
   {{- end }}
-{{- end}}
+{{- end }}
 {{- if .PushOciArtifacts }}
     {{- range .SpinApps }}
+        {{- if $generateSbom }}
+      - name: Generate SBOM for {{ .Name }}
+        working-directory: {{ .Path }}
+        run: |
+          trivy fs --format spdx-json -o sbom.spdx.json .
+      - name: Scan {{ .Name }} SBOM for Critical Vulnerabilities
+        working-directory: {{ .Path }}
+        run: |
+          trivy sbom --exit-code 1 --severity HIGH,CRITICAL sbom.spdx.json
+        {{- end }}
     {{- if ne .OciLoginServer "" }}
       - name: Authenticate against OCI registry for {{ .Name }}
       {{- if .OciUseGitHubToken }}
-        run: spin registry login -u {{ `${{ github.actor }}` }} -p {{ `${{ secrets.GITHUB_TOKEN }}` }} {{ .OciLoginServer }}
+        run: |
+          spin registry login -u {{ `${{ github.actor }}` }} -p {{ `${{ secrets.GITHUB_TOKEN }}` }} {{ .OciLoginServer }}
+          {{- if $generateSbomOrSignature }}
+          docker login -u {{ `${{ github.actor }}` }} -p {{ `${{ secrets.GITHUB_TOKEN }}` }} {{ .OciLoginServer }}
+          {{- end }}
       {{- else }}
         {{- $oci_login_password_secret_name := print "OCI_REGISTRY_PASSWORD_" .VarSafeAppName }}
-        run: spin registry login -u {{ .OciUser }} -p {{ print `${{ secrets.` $oci_login_password_secret_name ` }}` }} {{ .OciLoginServer }}
+        run: |
+          spin registry login -u {{ .OciUser }} -p {{ print `${{ secrets.` $oci_login_password_secret_name ` }}` }} {{ .OciLoginServer }}
+          {{- if $generateSbomOrSignature }}
+          docker login -u {{ .OciUser }} -p {{ print `${{ secrets.` $oci_login_password_secret_name ` }}` }} {{ .OciLoginServer }}
+          {{- end }}
       {{- end }}
     {{- end }}
       - name: Push OCI Artifact for {{ .Name }}
@@ -123,6 +159,22 @@ jobs:
         run: |
         {{- range .OciReferences }}
           spin registry push {{ . }}
+        {{- end }}
+        {{- if $generateSignature }}
+      - name: Sign OCI Artifact for {{ .Name }}
+        working-directory: {{ .Path }}
+        run: |
+        {{- range .OciReferences }}
+          cosign sign --yes {{ . }}
+        {{- end }}
+        {{- end }}
+        {{- if $generateSbom }}
+      - name: Attach {{ .Name }} SBOM via ORAS
+        working-directory: {{ .Path }}
+        run: |
+            {{- range .OciReferences }}
+          oras attach --artifact-type application/spdx+json {{ . }} sbom.spdx.json
+            {{- end }}
         {{- end }}
     {{- end }}
 {{- end}}

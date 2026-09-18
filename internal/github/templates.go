@@ -30,6 +30,9 @@ func getTemplateContents(customTemplateFilePath string) (string, error) {
 type templateData struct {
 	ActionName              string
 	DeployToAkamaiFunctions bool
+	GenerateSbom            bool
+	GenerateSignature       bool
+	GenerateSbomOrSignature bool
 	PushOciArtifacts        bool
 	EnvironmentVariables    []*EnvVar
 	Go                      bool
@@ -150,6 +153,9 @@ func buildTemplateData(options RenderActionOptions) templateData {
 		EnvironmentVariables:    options.EnvironmentVariables,
 		DeployToAkamaiFunctions: options.DeployToAkamaiFunctions,
 		PushOciArtifacts:        options.PushOciArtifacts,
+		GenerateSbom:            options.GenerateSbom,
+		GenerateSignature:       options.GenerateSignature,
+		GenerateSbomOrSignature: options.GenerateSbom || options.GenerateSignature,
 	}
 }
 
