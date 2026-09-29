@@ -71,6 +71,17 @@ func TestCollectRequiredSecrets(t *testing.T) {
 			},
 			want: []string{"AKAMAI_FUNCTIONS_TOKEN", "AKAMAI_FUNCTIONS_ACCOUNT_ID"},
 		},
+		{
+			name: "oci publishing and akamai deployment report the union of secrets",
+			data: templateData{
+				PushOciArtifacts:        true,
+				DeployToAkamaiFunctions: true,
+				SpinApps: []spinAppTemplateData{
+					{Name: "my-app", VarSafeAppName: "MY_APP", OciLoginServer: "registry.example.com", OciUser: "alice"},
+				},
+			},
+			want: []string{"OCI_REGISTRY_PASSWORD_MY_APP", "AKAMAI_FUNCTIONS_TOKEN", "AKAMAI_FUNCTIONS_ACCOUNT_ID"},
+		},
 	}
 
 	for _, tt := range tests {
