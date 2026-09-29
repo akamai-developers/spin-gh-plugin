@@ -14,6 +14,8 @@ type CreateActionOptions struct {
 	gh.ActionTriggers
 	DeployToAkamaiFunctions bool
 	PushOciArtifacts        bool
+	GenerateSbom            bool
+	GenerateSignature       bool
 	Name                    string
 	OperatingSystem         string
 	Output                  string
@@ -33,6 +35,13 @@ var createActionCmd = &cobra.Command{
 	Aliases: []string{"create", "generate"},
 	Short:   "Examines your Spin App and creates a GitHub Action workflow file",
 	Run: func(cmd *cobra.Command, args []string) {
+		// although we could simply enable OCI publishing
+		// we should not reconfigure behavior on-the-fly
+		if options.GenerateSbom || options.GenerateSignature {
+			if !options.PushOciArtifacts {
+				log.Fatal("Generating SBOM or Signing artifacts requires OCI artifact publishing flag (--push-oci-artifacts)")
+			}
+		}
 		apps := detective.FindAllSpinApps()
 		if len(apps) == 0 {
 			log.Fatal("Could not find Spin App(s) under the current directory")
@@ -53,6 +62,8 @@ var createActionCmd = &cobra.Command{
 			DeployToAkamaiFunctions: options.DeployToAkamaiFunctions,
 			PushOciArtifacts:        options.PushOciArtifacts,
 			CustomTemplatePath:      options.TemplatePath,
+			GenerateSbom:            options.GenerateSbom,
+			GenerateSignature:       options.GenerateSignature,
 			DryRun:                  options.DryRun,
 			Name:                    options.Name,
 			OperatingSystem:         options.OperatingSystem,
@@ -97,6 +108,7 @@ func init() {
 
 	createActionCmd.Flags().BoolVarP(&options.DeployToAkamaiFunctions, "deploy-to-akamai-functions", "", false, "Add steps for deploying your Spin App(s) to Akamai Functions")
 	createActionCmd.Flags().BoolVarP(&options.PushOciArtifacts, "push-oci-artifacts", "", false, "Add steps to publish your Spin App(s) to an OCI registry")
-
+	createActionCmd.Flags().BoolVarP(&options.GenerateSbom, "sbom", "", false, "Generate SBOM for OCI artifacts")
+	createActionCmd.Flags().BoolVarP(&options.GenerateSignature, "sign", "", false, "Sign OCI artifacts")
 	rootCmd.AddCommand(createActionCmd)
 }
