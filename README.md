@@ -83,13 +83,18 @@ You can use the following arguments to customize versions installed as part of t
 | Argument | Alias | Description | Default |
 | -------- | ----- | ----------- | ------- |
 | `push-oci-artifacts` | | Add steps to publish your Spin App(s) to an OCI registry | `false` |
+| `sbom` | | Generate an SBOM for the OCI artifacts, scan it for HIGH/CRITICAL vulnerabilities, and attach it via ORAS | `false` |
+| `sign` | | Sign the OCI artifacts using Cosign (keyless) | `false` |
 | `deploy-to-akamai-functions` | | Add steps for deploying your Spin App(s) to Akamai Functions | `false` |
+
+> [!NOTE]
+> `--sbom` and `--sign` require `--push-oci-artifacts` to be set. The command exits with an error if either is used without it.
 
 #### Render Options
 
 | Argument | Alias | Description | Default |
 | -------- | ----- | ----------- | ------- |
-| `output` | `o` | Output path | `./github/workflows/ci.yaml` |
+| `output` | `o` | Output path | `.github/workflows/ci.yaml` |
 | `dry-run` | | Print GitHub Action yaml to `stdout` | `false` |
 | `overwrite` | | Overwrite the output if it exists | `false` |
 | `template` | `t` | Provide a custom template | |
@@ -124,6 +129,11 @@ The following table lists the data passed to the template as part of the `create
 | `Go` | `bool` | Indicates if any Spin App or Component is built with Go | `true` |
 | `JavaScript` | `bool` | Indicates if any Spin App or Component is built with JavaScript | `true` |
 | `Python` | `bool` | Indicates if any Spin App or Component is built with Python | `true` |
+| `PushOciArtifacts` | `bool` | Indicates if steps to publish OCI artifacts should be rendered | `true` |
+| `DeployToAkamaiFunctions` | `bool` | Indicates if steps to deploy to Akamai Functions should be rendered | `true` |
+| `GenerateSbom` | `bool` | Indicates if SBOM generation, scanning and attachment steps should be rendered | `true` |
+| `GenerateSignature` | `bool` | Indicates if OCI artifact signing steps should be rendered | `true` |
+| `GenerateSbomOrSignature` | `bool` | Convenience flag that is `true` when either `GenerateSbom` or `GenerateSignature` is set | `true` |
 | `SpinApps` | `[]spinAppTemplateData` | Information for every Spin App discovered | See SpinAppTemplateData section below |
 
 ### ActionTriggers
@@ -131,7 +141,7 @@ The following table lists the data passed to the template as part of the `create
 | Field | DataType | Description | Sample Value |
 | ----- | -------- | ----------- | ------------ |
 | `ManualDispatch` | `bool` | Is `workflow_dispatch` enabled | `true` |
-| `Cron` | `string` | trigger cron expression | `0 2 * * *` |
+| `Schedule` | `string` | trigger cron expression | `0 2 * * *` |
 | `PullRequest` | `string` | trigger for PRs targeting the specified branch | `main` |
 | `Push` | `string` | trigger for every push on the specified branch | `main` |
 
